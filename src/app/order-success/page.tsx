@@ -1,13 +1,12 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle, Package, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, Package, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import AnimationWrapper from '@/components/ui/AnimationWrapper';
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('id');
     const [mounted, setMounted] = useState(false);
@@ -59,5 +58,17 @@ export default function OrderSuccessPage() {
                 </div>
             </div>
         </AnimationWrapper>
+    );
+}
+
+export default function OrderSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-peca-bg-alt">
+                <Loader2 className="w-10 h-10 text-peca-purple animate-spin" />
+            </div>
+        }>
+            <OrderSuccessContent />
+        </Suspense>
     );
 }
