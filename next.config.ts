@@ -1,13 +1,16 @@
 import type { NextConfig } from "next";
 
+const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001';
+const adminUrlObj = new URL(adminUrl);
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3001',
+        protocol: adminUrlObj.protocol.replace(':', '') as 'http' | 'https',
+        hostname: adminUrlObj.hostname,
+        port: adminUrlObj.port || '',
         pathname: '/uploads/**',
       },
     ],
@@ -16,7 +19,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:3001/uploads/:path*', // Proxy to Admin App
+        destination: `${adminUrl}/uploads/:path*`, // Proxy to Admin App using env var
       },
     ];
   },

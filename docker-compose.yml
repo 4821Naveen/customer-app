@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  shop-customer:
+    container_name: shop-customer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=${MONGODB_URI}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_SHOP_URL}/api
+      - JWT_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL}
+    volumes:
+      - uploads_data:/app/public/uploads
+
+volumes:
+  uploads_data:
