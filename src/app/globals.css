@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --peca-purple: #facc15;
+  /* Royal Yellow (Tailwind yellow-400) */
+  --peca-purple-dark: #eab308;
+  /* Darker Yellow (Tailwind yellow-500) */
+  --peca-orange: #f43f5e;
+  --peca-orange-dark: #be123c;
+  --peca-bg: #ffffff;
+  --peca-bg-alt: #f8fafc;
+  --peca-text: #0f172a;
+  --peca-text-light: #475569;
+  --peca-card-radius: 24px;
+  --peca-button-radius: 16px;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 17, 17;
+    --background-end-rgb: 15, 17, 17;
   }
 }
 
+@theme {
+  --color-peca-purple: #facc15;
+  --color-peca-purple-dark: #eab308;
+  --color-peca-text: #0f172a;
+  --color-peca-text-light: #475569;
+  --color-peca-bg: #ffffff;
+  --color-peca-bg-alt: #f8fafc;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--peca-text);
+  background: var(--peca-bg);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background-color: rgba(250, 204, 21, 0.3);
+  color: #0f172a;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@utility glass {
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
 }
