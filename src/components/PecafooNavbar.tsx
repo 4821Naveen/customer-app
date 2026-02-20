@@ -76,18 +76,36 @@ export default function PecafooNavbar() {
                         <Search size={20} className="stroke-[2.5px]" />
                     </button>
 
-                    <Link
-                        href="/profile"
-                        className="flex items-center gap-2 p-1.5 pr-3 md:p-2 md:pr-4 text-peca-text hover:bg-peca-purple/10 rounded-full transition-all group"
-                        aria-label="Profile"
-                    >
-                        <User size={20} className="stroke-[2.5px]" />
-                        {profileUser?.name && (
-                            <span className="text-[10px] md:text-xs font-black truncate max-w-[80px] md:max-w-[120px] text-peca-text-light group-hover:text-peca-text transition-colors">
-                                Hi, {profileUser.name.split(' ')[0]}
-                            </span>
-                        )}
-                    </Link>
+                    {profileUser ? (
+                        <div className="flex items-center gap-2">
+                            {profileUser.role === 'super_user' && (
+                                <Link
+                                    href="/admin"
+                                    className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-peca-purple hover:text-peca-purple-dark px-3 py-1 bg-peca-purple/10 rounded-lg transition-all"
+                                >
+                                    Admin Panel
+                                </Link>
+                            )}
+                            <Link
+                                href="/profile"
+                                className="flex items-center gap-2 p-1.5 pr-3 md:p-2 md:pr-4 text-peca-text hover:bg-peca-purple/10 rounded-full transition-all group border border-gray-100"
+                                aria-label="Profile"
+                            >
+                                <User size={20} className="stroke-[2.5px]" />
+                                <span className="text-[10px] md:text-xs font-black truncate max-w-[80px] md:max-w-[120px] text-peca-text-light group-hover:text-peca-text transition-colors">
+                                    Hi, {profileUser.name.split(' ')[0]}
+                                </span>
+                            </Link>
+                        </div>
+                    ) : (
+                        <Link
+                            href="/auth/login"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-peca-purple text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:scale-105 transition-all shadow-lg shadow-peca-purple/20"
+                        >
+                            <User size={16} className="stroke-[3px]" />
+                            <span className="hidden sm:inline">Sign In</span>
+                        </Link>
+                    )}
 
                     <Link
                         href="/cart"

@@ -13,10 +13,13 @@ export interface IOrder extends Document {
         productId: mongoose.Types.ObjectId;
         name: string;
         price: number;
+        originalPrice?: number;
+        gstAmount?: number;
         quantity: number;
     }[];
     totalAmount: number;
-    status: 'placed' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+    orderGstAmount?: number;
+    status: 'placed' | 'processing' | 'shipped' | 'delivered' | 'cancel_requested' | 'cancelled';
     paymentStatus: 'pending' | 'success' | 'failed' | 'refunded' | 'refund_pending';
     paymentId?: string;
     razorpayDetails?: {
@@ -57,13 +60,16 @@ const OrderSchema: Schema = new Schema(
                 productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
                 name: String,
                 price: Number,
+                originalPrice: Number,
+                gstAmount: Number,
                 quantity: Number,
             },
         ],
         totalAmount: { type: Number, required: true },
+        orderGstAmount: { type: Number, default: 0 },
         status: {
             type: String,
-            enum: ['placed', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'],
+            enum: ['placed', 'processing', 'shipped', 'delivered', 'cancel_requested', 'cancelled'],
             default: 'placed',
         },
         paymentStatus: {

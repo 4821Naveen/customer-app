@@ -40,16 +40,12 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
                                 <span className="px-3 py-1 bg-peca-purple/10 text-peca-purple text-xs font-bold rounded-full">
                                     {p.category || 'Popular'}
                                 </span>
-                                <div className="flex items-center gap-1 px-3 py-1 bg-peca-orange/10 text-peca-orange text-xs font-bold rounded-full">
-                                    <span>★ 4.8</span>
-                                </div>
                             </div>
                             <h1 className="text-3xl lg:text-5xl font-black text-peca-text leading-tight mb-4">{p.name}</h1>
                             <p className="text-peca-text-light leading-relaxed">
                                 {p.description || "Indulge in our chef's special creation, prepared with the finest ingredients and a touch of Pecafoo magic."}
                             </p>
                         </div>
-
                         <div className="mt-auto space-y-8">
                             <div className="flex items-baseline gap-3">
                                 <span className="text-4xl font-black text-peca-purple">₹{p.offerPrice ? p.offerPrice : p.price}</span>
@@ -61,24 +57,6 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <AddToCartButton product={p} />
-                                </div>
-                            </div>
-
-                            {/* Features list (Clean minimalist icons style) */}
-                            <div className="grid grid-cols-2 gap-4 pt-8 border-t border-gray-50">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-peca-bg-alt flex items-center justify-center text-xl">🚀</div>
-                                    <div>
-                                        <p className="text-xs font-black text-peca-text">Fast Delivery</p>
-                                        <p className="text-[10px] text-peca-text-light">20-30 mins</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-peca-bg-alt flex items-center justify-center text-xl">🥗</div>
-                                    <div>
-                                        <p className="text-xs font-black text-peca-text">Fresh Always</p>
-                                        <p className="text-[10px] text-peca-text-light">High quality</p>
-                                    </div>
                                 </div>
                             </div>
                         </div>

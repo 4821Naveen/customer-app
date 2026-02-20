@@ -6,12 +6,14 @@ export interface IProduct extends Document {
     description: string;
     price: number;
     offerPrice?: number;
+    offerPercentage?: number;
     images: string[];
     category: string;
     isActive: boolean;
     showInSlider: boolean;
     isBuyNowEnabled: boolean;
     stock: number;
+    gstPercentage: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -22,12 +24,14 @@ const ProductSchema: Schema = new Schema(
         description: { type: String, required: true },
         price: { type: Number, required: true },
         offerPrice: { type: Number },
+        offerPercentage: { type: Number },
         images: { type: [String], default: [] },
         category: { type: String, required: true },
         isActive: { type: Boolean, default: true },
         showInSlider: { type: Boolean, default: false },
         isBuyNowEnabled: { type: Boolean, default: true },
         stock: { type: Number, default: 0 },
+        gstPercentage: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

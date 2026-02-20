@@ -2,20 +2,23 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface User {
-    _id: string;
-    userId: string;
+    _id?: string;
+    userId?: string;
     name: string;
     email: string;
+    role: 'customer' | 'super_user';
     mobile?: string;
+    address?: string;
 }
 
 interface UserContextType {
     user: User | null;
     loading: boolean;
     login: (userData: User) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -23,9 +26,9 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
-        // Initial load from localStorage
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
             try {
@@ -42,9 +45,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user', JSON.stringify(userData));
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (err) {
+            console.error('Logout API failed', err);
+        }
         setUser(null);
         localStorage.removeItem('user');
+        router.push('/');
     };
 
     return (

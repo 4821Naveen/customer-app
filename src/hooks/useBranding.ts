@@ -1,45 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useBrandingContext } from '@/context/BrandingContext';
 
 export function useBranding(defaultTitle: string = 'Store') {
-    const [branding, setBranding] = useState({
-        name: '',
-        logo: '',
-        loading: true
-    });
+    const { name, logoUrl, loading, refreshBranding } = useBrandingContext();
 
     useEffect(() => {
-        fetch('/api/settings/company')
-            .then(res => res.json())
-            .then(data => {
-                if (data && !data.error) {
-                    setBranding({
-                        name: data.name,
-                        logo: data.logo,
-                        loading: false
-                    });
+        if (name) {
+            if (defaultTitle === 'Store' || defaultTitle === 'Home' || !defaultTitle) {
+                document.title = name;
+            } else {
+                document.title = `${defaultTitle} | ${name}`;
+            }
+        }
+    }, [name, defaultTitle]);
 
-                    // Update Title
-                    if (data.name) {
-                        document.title = `${data.name} - ${defaultTitle}`;
-                    }
-
-                    // Update Favicon
-                    if (data.logo) {
-                        const link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
-                        link.type = 'image/x-icon';
-                        link.rel = 'shortcut icon';
-                        link.href = data.logo;
-                        document.getElementsByTagName('head')[0].appendChild(link);
-                    }
-                }
-            })
-            .catch(err => {
-                console.error('Failed to load branding:', err);
-                setBranding(prev => ({ ...prev, loading: false }));
-            });
-    }, [defaultTitle]);
-
-    return branding;
+    return {
+        name,
+        logo: logoUrl,
+        loading,
+        refreshBranding
+    };
 }

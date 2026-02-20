@@ -20,11 +20,16 @@ interface CompanySettings {
     };
 }
 
+
+import { useUser } from '@/context/UserContext';
+import { useToast } from '@/context/ToastContext';
+
 export default function CheckoutPage() {
     const { cart, cartTotal, clearCart } = useCart();
     const router = useRouter();
+    const { user, loading: userLoading } = useUser();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [userId, setUserId] = useState('');
     const [settings, setSettings] = useState<CompanySettings | null>(null);
 
     const [formData, setFormData] = useState({
@@ -36,30 +41,22 @@ export default function CheckoutPage() {
     });
 
     useEffect(() => {
-        let storedId = localStorage.getItem('userId');
-        if (!storedId) {
-            storedId = crypto.randomUUID();
-            localStorage.setItem('userId', storedId);
+        if (!userLoading && !user) {
+            showToast('Please login to place an order', 'warning');
+            router.push('/auth/login?redirect=/checkout');
+            return;
         }
-        setUserId(storedId);
 
-        const fetchUser = async () => {
-            try {
-                const res = await fetch(`/api/user/${storedId}`);
-                if (res.ok) {
-                    const savedUser = await res.json();
-                    if (savedUser) {
-                        setFormData(prev => ({
-                            ...prev,
-                            name: savedUser.name || '',
-                            mobile: savedUser.mobile || '',
-                            email: savedUser.email || '',
-                            address: savedUser.address || ''
-                        }));
-                    }
-                }
-            } catch (e) { }
-        };
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || '',
+                mobile: user.mobile || '',
+                email: user.email || '',
+                address: user.address || ''
+            }));
+        }
+
         const fetchSettings = async () => {
             try {
                 const res = await fetch('/api/settings/company');
@@ -72,9 +69,12 @@ export default function CheckoutPage() {
             }
         };
 
-        fetchUser();
         fetchSettings();
-    }, []);
+    }, [user, userLoading]);
+
+    if (userLoading) {
+        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    }
 
     if (cart.length === 0) {
         return (
@@ -100,7 +100,8 @@ export default function CheckoutPage() {
             const res = await initializeRazorpay();
 
             if (!res) {
-                alert("Razorpay SDK Failed to load");
+                showToast("Razorpay SDK Failed to load", "error");
+                setLoading(false);
                 return;
             }
 
@@ -113,7 +114,7 @@ export default function CheckoutPage() {
 
             if (!orderRes.ok) {
                 const err = await orderRes.json();
-                alert(err.error || "Failed to create payment order");
+                showToast(err.error || "Failed to create payment order", "error");
                 setLoading(false);
                 return;
             }
@@ -146,7 +147,7 @@ export default function CheckoutPage() {
 
             const rzp1 = new window.Razorpay(options);
             rzp1.on('payment.failed', function (response: any) {
-                alert(response.error.description);
+                showToast(response.error.description, "error");
                 setLoading(false);
             });
 
@@ -154,6 +155,7 @@ export default function CheckoutPage() {
 
         } catch (error) {
             console.error(error);
+            showToast("An error occurred during payment initiation", "error");
             setLoading(false);
         }
     };
@@ -178,7 +180,7 @@ export default function CheckoutPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    customer: { ...formData, userId },
+                    customer: { ...formData, userId: user?._id || user?.userId },
                     items: cart.map(item => ({
                         productId: item.productId,
                         name: item.name,
@@ -193,19 +195,18 @@ export default function CheckoutPage() {
                 }),
             });
 
-            if (!res.ok) throw new Error('Order creation failed');
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Order creation failed');
+            }
             const data = await res.json();
 
-            await fetch('/api/user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, ...formData })
-            });
-
+            // Clear cart and redirect
             clearCart();
+            showToast('Order placed successfully!', 'success');
             router.push(`/order-success?id=${data.orderId}`);
-        } catch (error) {
-            alert('Order creation failed after payment. Please contact support.');
+        } catch (error: any) {
+            showToast(error.message || 'Order creation failed after payment. Please contact support.', 'error');
             setLoading(false);
         }
     };

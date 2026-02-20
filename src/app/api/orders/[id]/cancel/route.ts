@@ -26,7 +26,7 @@ export async function POST(
         console.log('[Cancel Request] Existing cancellation request:', order.cancellationRequest);
 
         // Allow cancellation for orders that haven't been shipped yet
-        const cancellableStatuses = ['placed', 'confirmed', 'packed'];
+        const cancellableStatuses = ['placed', 'processing'];
         if (!cancellableStatuses.includes(order.status)) {
             console.error('[Cancel Request] Order cannot be cancelled, status:', order.status);
             return NextResponse.json({
@@ -43,6 +43,7 @@ export async function POST(
             return NextResponse.json({ error: 'Cancellation request already submitted' }, { status: 400 });
         }
 
+        order.status = 'cancel_requested';
         order.cancellationRequest = {
             requested: true,
             reason: reason || 'No reason provided',

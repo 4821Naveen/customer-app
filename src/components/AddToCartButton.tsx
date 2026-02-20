@@ -10,10 +10,11 @@ export default function AddToCartButton({ product }: { product: any }) {
     const [qty, setQty] = useState(1);
 
     const handleAdd = () => {
+        const finalPrice = product.offerPrice && product.offerPrice < product.price ? product.offerPrice : product.price;
         addToCart({
             productId: product._id,
             name: product.name,
-            price: product.price,
+            price: finalPrice,
             image: product.images[0] || '',
             quantity: qty
         });

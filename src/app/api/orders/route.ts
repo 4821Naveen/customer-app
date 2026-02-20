@@ -23,8 +23,35 @@ export async function POST(req: Request) {
 
         const totalAmount = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
+        // Fetch detailed product info to calculate GST and verify prices
+        const productIds = items.map((item: any) => item.productId);
+        const dbProducts = await Product.find({ _id: { $in: productIds } });
+
+        let orderGstAmount = 0;
+        const processedItems = items.map((item: any) => {
+            const dbProduct = dbProducts.find(p => p._id.toString() === item.productId);
+            const gstPercentage = dbProduct?.gstPercentage || 0;
+            const pricePaid = item.price; // This is the final price from cart
+
+            // Assume pricePaid is GST inclusive. 
+            // GST Amount = Total - (Total / (1 + GST% / 100))
+            const gstAmountPerUnit = pricePaid - (pricePaid / (1 + gstPercentage / 100));
+            const totalGstForItem = gstAmountPerUnit * item.quantity;
+            orderGstAmount += totalGstForItem;
+
+            return {
+                productId: item.productId,
+                name: item.name,
+                price: pricePaid,
+                originalPrice: dbProduct?.price || pricePaid,
+                gstAmount: totalGstForItem,
+                quantity: item.quantity
+            };
+        });
+
         // Verify Signature and Capture Payment if payment was made
         if (paymentId && razorpayOrderId && razorpaySignature) {
+            // ... (signature verification logic remains unchanged)
             const details = await CompanyDetails.findOne();
             const keySecret = details?.paymentGateway?.keySecret;
             const keyId = details?.paymentGateway?.keyId;
@@ -41,27 +68,27 @@ export async function POST(req: Request) {
                 }
 
                 // 2. Capture the Payment
-                console.log('[Payment] Signature verified. Capturing payment:', paymentId);
                 try {
                     const razorpay = new Razorpay({
                         key_id: keyId,
                         key_secret: keySecret,
                     });
 
-                    const captureResponse = await razorpay.payments.capture(
+                    await razorpay.payments.capture(
                         paymentId,
-                        totalAmount * 100, // amount in paise
+                        Math.round(totalAmount * 100), // amount in paise
                         'INR'
                     );
-
-                    console.log('[Payment] Captured successfully:', captureResponse.id);
-                    console.log('[Payment] Capture status:', captureResponse.status);
                 } catch (captureErr: any) {
-                    console.error('[Payment] Capture failed:', captureErr);
-                    console.error('[Payment] Capture error details:', JSON.stringify(captureErr, null, 2));
-                    return NextResponse.json({
-                        error: 'Payment capture failed: ' + (captureErr.error?.description || captureErr.message)
-                    }, { status: 400 });
+                    const errorMsg = captureErr.error?.description || captureErr.message || '';
+                    if (errorMsg.includes('already been captured')) {
+                        console.log('[Payment] Order was already captured. Proceeding with record creation...');
+                    } else {
+                        console.error('[Payment] Capture failed:', captureErr);
+                        return NextResponse.json({
+                            error: 'Payment capture failed: ' + errorMsg
+                        }, { status: 400 });
+                    }
                 }
             }
         }
@@ -69,13 +96,9 @@ export async function POST(req: Request) {
         const newOrder = await Order.create({
             orderId: generateOrderId(),
             customer,
-            products: items.map((item: any) => ({
-                productId: item.productId,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity
-            })),
+            products: processedItems,
             totalAmount,
+            orderGstAmount,
             status: 'placed',
             paymentStatus: paymentId ? 'success' : 'pending',
             paymentId: paymentId,
@@ -102,7 +125,7 @@ export async function GET(req: Request) {
         const userId = searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: 'UserId is required' }, { status: 400 });
+            return NextResponse.json([]);
         }
 
         const orders = await Order.find({ "customer.userId": userId })

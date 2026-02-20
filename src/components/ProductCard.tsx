@@ -19,10 +19,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     const handleCreate = (e: React.MouseEvent) => {
         e.preventDefault(); // Prevent navigation
+        const finalPrice = product.offerPrice || product.price;
         addToCart({
             productId: product._id,
             name: product.name,
-            price: product.price,
+            price: finalPrice,
             image: product.images[0] || '',
             quantity: 1
         });
@@ -31,13 +32,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     const toggleWishlist = (e: React.MouseEvent) => {
         e.preventDefault();
+        const finalPrice = product.offerPrice || product.price;
         if (isFavorite) {
             removeFromWishlist(product._id);
         } else {
             addToWishlist({
                 productId: product._id,
                 name: product.name,
-                price: product.price,
+                price: finalPrice,
                 image: product.images[0] || ''
             });
         }
@@ -88,9 +90,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                         <h3 className="text-sm md:text-[15px] font-black text-peca-text line-clamp-2 leading-tight flex-1">
                             {product.name}
                         </h3>
-                        <div className="bg-slate-900 px-2 py-0.5 rounded-lg flex items-center gap-1 shrink-0">
-                            <span className="text-[10px] font-black text-peca-purple">⭐ 4.8</span>
-                        </div>
                     </div>
 
                     <p className="text-[10px] md:text-xs font-bold text-peca-text-light mb-2 line-clamp-1">
@@ -100,11 +99,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                     {/* Price Section */}
                     <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
                         <div className="flex flex-col">
-                            {product.offerPrice && (
+                            {product.offerPrice && product.offerPrice < product.price && (
                                 <span className="text-[10px] text-gray-400 line-through">₹{product.price}</span>
                             )}
                             <span className="text-base md:text-lg font-black text-slate-900">
-                                ₹{product.offerPrice ? product.offerPrice : product.price}
+                                ₹{product.offerPrice && product.offerPrice < product.price ? product.offerPrice : product.price}
                             </span>
                         </div>
 

@@ -3,12 +3,27 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Product from '@/models/Product';
 
-export async function GET() {
+export async function GET(req: Request) {
     await connectToDatabase();
     try {
-        const products = await Product.find({ isActive: true }).sort({ createdAt: -1 });
+        const { searchParams } = new URL(req.url);
+        const activeOnly = searchParams.get('activeOnly') === 'true';
+
+        const filter = activeOnly ? { isActive: true } : {};
+        const products = await Product.find(filter).sort({ createdAt: -1 });
         return NextResponse.json(products);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function POST(req: Request) {
+    await connectToDatabase();
+    try {
+        const body = await req.json();
+        const product = await Product.create(body);
+        return NextResponse.json(product, { status: 201 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 }
